@@ -2,57 +2,218 @@ Standard  Imaging Mass Cytometry Normalization and clustering Protocol
 Author: Xiaofei Yu , Medis ,Tina, Wies, Shabnam
 Time : 2026.01.13
 
-00--Before running normalization and scaling code,we made a table including max, median,mean and sd intensity of each makers to get a general idea about dataset.<code> if there is ridiculous high signal ,checking images to see if it is artifacts or aggragation.
-Consider : if there is shining shape in the image ,after removing the aggregate cells, also checking the cells around the removed cells. 
+Standard Operating Procedure (SOP)
+IMC Data Quality Control, Normalization, and Clustering
+Step 0. Pre-Normalization Quality Assessment
+Step 0.1 Generate Summary Statistics
+1.	For each marker, calculate:
+o	Maximum
+o	Median
+o	Mean
+o	Standard deviation
+2.	Compile results into a summary table.
+Step 0.2 Inspect Extreme Values
+1.	Identify markers or ROIs with unusually high signal.
+2.	Open corresponding images and check for:
+o	Artifacts
+o	Cell aggregation
+3.	If shining or abnormally bright structures are present:
+o	Remove aggregate cells.
+o	Inspect cells surrounding the removed aggregates to ensure they are not affected.
 
-01-- Usual Normalizationa and scaling step : <code>
-  -- Usual checking after Normalizationa and scaling: 
-  -- Plot need to be made : 
-  011  Histogram: Argon 80 and  Xenon132  of each ROI.
-              --> For checking the scanning quality. <code> and exmaple images
-              --> If argon 80 or Xenon 132 shows wired pattern (obvious non-normal distribution)，checking the images if there are bright or dim lines in  images,whether it influce other channel,if yes, consider remove,if not ,keep .
-              (consider use Median instead of mean for nomalization)
-  012.	Heatmap : each marker vs ROI (scale by=NULL, after normalization)<code> and exmaple images --> recognize the abnormal values from each ROI 
-  --> Abnormal markers in all ROI --> if it is background ,or staining problem ,or just high expression marker. 
-  --> Abnormal regions --> high intensity of all markers (perhaps will also show in PCA and UMAP) -->technology problem or sample nature. 
-  013.	PCA  : markers and ROI :<code> and exmaple images -- outlier image , what markers leading the problem?
-  --> Remove images or it :  if only few channels have high intensity --> perhaps checking threshold ,but if most of the channels have problem, remove that image .
-  014.  UMAP :checkinng the batch effect, weired clusters (colour by ROI/sample_ID/treatment)
-              --> if high batch effect :  additional PCA reduction with Harmony correction <code> and example images
-              --> if weired clusters:   check if it is real signal, otherwise remove
-  015.  Dot plot to display the 10% value and 50% and 99% value of a specific maker of each images (x axis images and y axis is values ) -->
-  For example:if the 10% value of image A is very close to 50% value of other images , which guide a high background in  imageA.
-  Situation A: all iamges have same problem 
-  Optimal the threshold and percentage according to the values..
-  --> if the value is much lower than the threshold, go back to images -->1 no cells (increase threshold), 2 values are low (decrease the threshold).
+Step 1. Normalization and Scaling
+Step 1.1 Perform Standard Normalization and Scaling
+1.	Apply the standard normalization and scaling procedure to all ROIs.
 
-  Situation B : only few images have problems ,remove, or keep,if keep:
-  --> if the marker is lineage marker --. changing the threshold seperately  ,will not influence the result
-  --> if the makrer is state marker -->  Maybe make a note and not include in later statistics. / OR not scale for the problematic images.
+Step 2. Post-Normalization Quality Control
+Step 2.1 Check Scanning Quality Using Histograms
+1.	Generate histograms of Argon80 and Xenon132 for each ROI.
+2.	Evaluate histogram shapes:
+o	Normal-like distributions → acceptable.
+o	Abnormal distributions (e.g., strong skew or non-normal shape) → proceed to Step 2.1.3.
+3.	If abnormalities are observed:
+o	Inspect raw images for:
+	Bright lines
+	Dim lines
+o	Determine whether artifacts affect other channels:
+	If yes → consider removing the image.
+	If no → keep the image.
+4.	If necessary, consider using median-based normalization instead of mean.
 
- 02 Rules for approving the normalization: Umaps (colour by ROI/sample_ID/lineage markers/all makers) --> ROI and  sample_ID : mixed acceptable.   markers: lineage markers should be seperate.
+Step 2.2 Generate Marker × ROI Heatmap
+1.	Create a heatmap of markers vs. ROIs:
+o	After normalization
+o	scale = NULL
+2.	Identify abnormal patterns:
+o	Abnormal markers across all ROIs
+o	Abnormal ROIs with globally high intensities
+3.	Interpret abnormalities:
+o	Marker-wide abnormalities:
+	Background staining
+	Staining failure
+	True high expression
+o	ROI-specific abnormalities:
+	Likely technical issues or intrinsic sample characteristics
 
- 03 CLustering:  Here we use Phenograph analysis to create clusters:
-   --031 -	Cluster tree and heatmap(scale by lineage marker and scale by cluster) to determine appropriate k value for clustering 
-            --Roughly checking the cluster tree and select few k value , making the heatmap with these k value.. 
-            --if any K value is easier to annotate important cluster, a good k value should not have many markers per celltype or many celly types (rare) are clustered together.
-  --032 -   Annotate the clusters.
-          --032.A quickly annotate cell type accrording to your biology acknowlege.and add some notes about positive, controversial markers. if not sure, Undefine /Unassigned/Uncertain 
-          --032.B Check annotation with Image J <code and 5D notebook> --> checking the clusters with approperate lineage markers, also if wired combination . make notes for uncertain and mixed clusters
-          --032.C Deal with uncertain cluster and mixed cluster : either recluster or find optimal cutoff to split the clusters
-          ---> Recluster:  myeloid cells sometimes can mix together especially for DC and Mac and Monocytes.   <code>   substract possible myeloid cluster and rerun the Phenograph ,set optimal K as before.. and merge back
-          ---> Split :  1 scatter plot to see if the cells ara divided into two population .  (Tregs always come from CD4 population)
-                        2 Umap with annotation : For example: umap only include myeloid cells,map myeloid markers to the umap,map subclusters in umap 
-                        3 set cutoff on umap
-                        4 ImageJ -cross checking
-                        Notes :After changing the cutoff based on umap/scatter plot,always do cross-checking  in imageJ. if not correct, change the cutoff again .these can be a loop ,it costs time,be patient
- --032  -	PCA of markers and PCA of annotations (check outliers)
- --033  Heatmap and umap with the annotated cluster : final check.
-        
+Step 2.3 Perform PCA (Outlier Detection)
+1.	Generate:
+o	PCA of markers
+o	PCA of ROIs
+2.	Identify outlier images.
+3.	Determine contributing markers:
+o	If only a few markers are problematic → consider threshold adjustment.
+o	If most markers are problematic → remove the image.
 
- Extra Problem : Edge effect , perhaps shows in umap in a cluster.  manually maybe.  Cellprofiler?
-    
-  
+Step 2.4 Perform UMAP Analysis
+1.	Generate UMAPs colored by:
+o	ROI
+o	Sample ID
+o	Treatment group
+2.	Evaluate:
+o	Batch effects
+o	Unexpected or “weird” clusters
+3.	If strong batch effects are detected:
+o	Perform additional PCA reduction with Harmony correction.
+4.	If abnormal clusters are detected:
+o	Verify whether they represent real biological signals.
+o	If not → remove affected cells or images.
+
+Step 2.5 Marker Distribution Dot Plot
+1.	Generate dot plots displaying:
+o	10%
+o	50%
+o	99% quantiles
+for a specific marker across images.
+2.	Interpretation:
+o	If the 10% quantile of one image is close to the 50% quantile of others:
+	Indicates high background in that image.
+Case A: All Images Affected
+1.	Optimize thresholds and percentile cutoffs globally.
+2.	If values are far below threshold:
+o	Re-inspect images:
+	No cells detected → increase threshold.
+	Signal too weak → decrease threshold.
+Case B: Only Some Images Affected
+1.	Decide whether to remove or keep affected images.
+2.	If keeping:
+o	Lineage markers:
+	Adjust thresholds individually.
+o	State markers:
+	Either exclude from downstream statistics, or
+	Avoid scaling for problematic images.
+
+Step 3. Approval Criteria for Normalization
+1.	Generate UMAPs colored by:
+o	ROI
+o	Sample ID
+o	Lineage markers
+o	All markers
+2.	Accept normalization if:
+o	ROI and Sample ID distributions are mixed.
+o	Lineage markers show clear separation.
+
+Step 4. Clustering Analysis (Phenograph)
+Step 4.1 Determine Optimal k
+1.	Run Phenograph with multiple candidate k values.
+2.	Generate:
+o	Cluster tree
+o	Heatmaps scaled by:
+	Lineage markers
+	Cluster
+3.	Select k that:
+o	Produces biologically interpretable clusters
+o	Avoids merging rare and unrelated cell types
+o	Does not assign excessive markers to single clusters
+
+Step 4.2 Cluster Annotation
+Step 4.2.1 Initial Annotation
+1.	Annotate clusters based on biological knowledge.
+2.	Record:
+o	Positive markers
+o	Controversial markers
+3.	Label uncertain clusters as:
+o	Undefined / Unassigned / Uncertain
+
+Step 4.2.2 Image-Based Validation
+1.	Validate annotations using ImageJ.
+2.	Confirm:
+o	Marker localization
+o	Absence of biologically implausible combinations
+3.	Add notes for mixed or uncertain clusters.
+
+Step 4.2.3 Resolve Mixed or Uncertain Clusters
+Option A: Reclustering
+1.	Subset suspected mixed populations (e.g., myeloid cells).
+2.	Rerun Phenograph.
+3.	Select optimal k.
+4.	Merge refined clusters back into the full dataset.
+Option B: Cluster Splitting
+1.	Generate scatter plots to detect bimodal populations.
+2.	Generate UMAPs of the relevant subset.
+3.	Map lineage and functional markers.
+4.	Define cutoffs in UMAP space.
+5.	Validate results in ImageJ.
+Important:
+After every cutoff adjustment, repeat ImageJ validation.
+Iterate until annotation is correct. these can be a loop ,it costs time, be patient
+
+Step 4.2.4  PCA
+Perform:
+•	PCA of markers
+•	PCA of annotations
+
+
+
+Step 4.3 Final Quality Control
+1.	Generate final:
+o	Heatmap
+o	UMAP with annotated clusters
+
+
+Optional question . Address Edge Effects
+1.	Inspect UMAPs for clusters driven by edge effects.
+2.	Manually inspect affected regions.
+3.	Apply correction if necessary (e.g., using CellProfiler).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
    
