@@ -1,5 +1,5 @@
 Standard  Imaging Mass Cytometry Normalization and clustering Protocol  
-Author: Xiaofei Yu , Medis ,Tina, Wies, Shabnam
+Author: Xiaofei Yu , Medis ,Tina, Shabnam, Wies
 Time : 2026.01.13
 
 Standard Operating Procedure (SOP)
