@@ -24,6 +24,7 @@ o	Inspect cells surrounding the removed aggregates to ensure they are not affect
 Step 1. Normalization and Scaling
 Step 1.1 Perform Standard Normalization and Scaling
 1.	Apply the standard normalization and scaling procedure to all ROIs.
+2.	Optional : Asinh 
 
 Step 2. Post-Normalization Quality Control
 Step 2.1 Check Scanning Quality Using Histograms
